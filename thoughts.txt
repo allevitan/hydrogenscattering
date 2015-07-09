@@ -1,0 +1,11 @@
+What does the program need to do?
+
+Simplest version:
+
+Must accept:
+* A grid of FCC and HCP densities
+* A grid of laser fluence at w and 3w
+* An offset between beam and jet (perhaps folded into the laser fluence)
+
+Must return:
+* Scattering intensity as a function of angle
