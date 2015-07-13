@@ -9,3 +9,9 @@ Must accept:
 
 Must return:
 * Scattering intensity as a function of angle
+
+
+Thoughts:
+Maybe it needs some parameter for crystal size? Because it looks like each shot actually 
+
+

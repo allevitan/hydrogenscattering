@@ -8,7 +8,7 @@ xs = np.linspace(-5,5,101)
 ys = np.linspace(-5,5,101)
 Xs,Ys = np.meshgrid(xs,ys)
 fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
-                     (np.sqrt(Xs**2 + Ys**2) >= 2)).astype(float)
+                         (np.sqrt(Xs**2 + Ys**2) >= 2)).astype(float)
 hcp_jet = (np.sqrt(Xs**2 + Ys**2) <2).astype(float)
 
 
@@ -97,5 +97,4 @@ p.pcolormesh(new_Xs,new_Zs,hcp10)
 p.colorbar()
 p.title('HCP contribution, FEL offset by 10 um')
 p.show()
-
 
