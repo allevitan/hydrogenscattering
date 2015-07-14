@@ -15,4 +15,3 @@ class Sim(object):
         fcc = fcc_flat * beam.transpose()
         hcp = hcp_flat * beam.transpose()
         return fcc, hcp
-

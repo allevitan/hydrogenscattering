@@ -32,9 +32,10 @@ def get_form_factors():
                     a3 * n.exp(-b3*(q/(4*n.pi))**2) + \
                     a4 * n.exp(-b4*(q/(4*n.pi))**2) + c
                     for a1,b1,a2,b2,a3,b3,a4,b4,c in constants]
-    return {label:form_factor
+    form_factors = {label:form_factor
             for label, form_factor
             in zip(labels, form_factors)}
+    return form_factors
         
 
 class Lattice(object):
