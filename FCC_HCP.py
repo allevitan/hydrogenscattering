@@ -13,23 +13,10 @@ fcc_basis = Basis([('H',[0,0,0])])
 fcc_crystal = fcc_lattice + fcc_basis
 
 
-a = atomic_spacing*np.array([1,0,0])
-b = atomic_spacing*np.array([-0.5,np.sqrt(3)/2,0])
-c = atomic_spacing*np.array([0,0,np.sqrt(8/3)])
-hcp_lattice = Lattice(a,b,c)
+hcp_lattice = Hexagonal(atomic_spacing, atomic_spacing*np.sqrt(8/3))
 hcp_basis = Basis([('H',[0,0,0]),
                    ('H', [0.5,0.5/np.sqrt(3),np.sqrt(2/3)])],
                   l_const=atomic_spacing)
-# hcp_basis = Basis([('H',[0,0,0.37/atomic_spacing]),
-#                    ('H',[0,0,-0.37/atomic_spacing]),
-#                    ('H',[0.5,0.5/np.sqrt(3),np.sqrt(2/3)+0.37/atomic_spacing]),
-#                    ('H',[0.5,0.5/np.sqrt(3),np.sqrt(2/3)-0.37/atomic_spacing])],
-#                    l_const=atomic_spacing)
-#hcp_basis = Basis([('H',[0,0,0.783/atomic_spacing]),
-#                   ('H',[0,0,-0.783/atomic_spacing]),
-#                   ('H',[0.5,0.5/np.sqrt(3),np.sqrt(2/3)+0.783/atomic_spacing]),
-#                   ('H',[0.5,0.5/np.sqrt(3),np.sqrt(2/3)-0.783/atomic_spacing])],
-#                   l_const=atomic_spacing)
 hcp_crystal = hcp_lattice + hcp_basis
 
 

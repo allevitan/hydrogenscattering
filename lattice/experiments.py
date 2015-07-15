@@ -1,12 +1,10 @@
 from __future__ import division, print_function
 import numpy as n
 import itertools as it
+from time import time
 
-def powder_XRD(crystal,wavelength):
-    """
-    Generates a powder XRD spectrum for radiation with the
-    given wavelength (in angstroms)
-    """
+
+def find_accessible_rlvs(crystal, wavelength):
     # We generate a list of accessible reciprocal lattice
     # vectors. To be accessible, the magnitude of a rlv's
     # wavevector must be less than twice that of the input
@@ -37,6 +35,17 @@ def powder_XRD(crystal,wavelength):
             if n.linalg.norm(rlv) < 2*nu
             and not n.allclose(rlv,0)]
     
+    return n.array(rlvs)
+
+
+def powder_XRD(crystal,wavelength, get_mults=False):
+    """
+    Generates a powder XRD spectrum for radiation with the
+    given wavelength (in angstroms)
+    """
+    nu = 2*n.pi/wavelength
+    rlvs = find_accessible_rlvs(crystal,wavelength)
+
     # Now we renormalize the intensities to account for the fact that
     # the same lattice can be described by different unit cells
     unit_vol = n.abs(n.dot(crystal.lattice[0],n.cross(
@@ -49,43 +58,46 @@ def powder_XRD(crystal,wavelength):
     
     # We actually only care about the magnitudes of the rlvs
     magnitudes = {}
+    multiplicities = {}
     for rlv, intensity in intensities.items():
         repeat = False
         mag = n.linalg.norm(rlv)
         for oldmag in magnitudes:
             if n.isclose(mag,oldmag):
                 magnitudes[oldmag] += intensity
+                multiplicities[oldmag] += 1
                 repeat = True
                 break
         if not repeat:
+            multiplicities[mag] = 1
             magnitudes[mag] = intensity
         
     # Now we calculate the scattering angles and intensities
-    angles = {2 * n.arcsin(mag / (2 * nu)) * 180 / n.pi:
-              intensity * 
-              # This factor corrects for the fact that the same total
-              # power in the debye scherrer rings is more
-              # concentrated at 2\theta =  0 and 2pi
-              1 / n.sin(2*n.arcsin(mag/(2*nu))) *
-              # This factor corrects for the angular dependence of
-              # scattering probability given an equal incident
-              # scattering wavevector and an equal alowed variance
-              # around the scattering vector
-              1 * #cos(theta)/cos(theta)
-              # This factor corrects for the fact that destructive
-              # interference builds up faster at shorter wavelengths,
-              # meaning that the allowed variance around the scattering
-              # vector is proportional to 1/mag of scattering vector
-              1 / mag *
-              # This factor corrects for polarization effects,
-              # Assuming an unpolarized input beam and no polarization
-              # analysis
-              (1 + n.cos(2*n.arcsin(mag/(2*nu)))**2)/2
-              for mag, intensity in magnitudes.items()
-              if not n.allclose(intensity,0)}
-    
-    return angles
-    
+    multiplicities = {2 * n.arcsin(mag / (2 * nu)) * 180 / n.pi:
+                      multiplicity
+                      for mag, multiplicity in multiplicities.items()
+                      if not n.allclose(magnitudes[mag],0)}
+    intensities = {2 * n.arcsin(mag / (2 * nu)) * 180 / n.pi:
+                   intensity * 
+                   # This factor corrects for the fact that the same total
+                   # power in the debye scherrer rings is more
+                   # concentrated at 2\theta =  0 and 2pi
+                   1 / n.sin(2*n.arcsin(mag/(2*nu))) *
+                   # This factor corrects for the angular dependence of
+                   # scattering probability given an equal incident
+                   # scattering wavevector and an equal alowed variance
+                   # around the scattering vector
+                   1 / mag * #cos(theta)/(cos(theta)*sin(theta))
+                   # This factor corrects for polarization effects,
+                   # Assuming an unpolarized input beam and no polarization
+                   # analysis
+                   (1 + n.cos(2*n.arcsin(mag/(2*nu)))**2)/2
+                   for mag, intensity in magnitudes.items()
+                   if not n.allclose(intensity,0)}
+    if get_mults:
+        return intensities, multiplicities
+    else:
+        return intensities
 
 def spectrumify(scattering_data):
     """
@@ -105,3 +117,54 @@ def spectrumify(scattering_data):
 
 
     
+def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, niceify=False):
+
+    d = 1/n.float(l)
+    nu = 2*n.pi/wavelength
+    # Now we renormalize the intensities to account for the fact that
+    # the same lattice can be described by different unit cells
+    unit_vol = n.abs(n.dot(crystal.lattice[0],n.cross(
+        crystal.lattice[1],crystal.lattice[2])))
+
+    if rlvs == None:
+        rlvs = find_accessible_rlvs(crystal,wavelength)
+    if s_facts == None:
+        s_facts = n.array([n.abs(crystal.structure_factor(rlv)/unit_vol)**2
+                   for rlv in rlvs])
+    
+    ks = n.random.rand(3,num) - 0.5
+    ks = (ks / n.linalg.norm(ks, axis=0) * nu).transpose()
+
+    kprimes = rlvs[:,None,:] - ks
+    offsets = n.linalg.norm(kprimes,axis=2) - nu
+
+    #good = n.abs(offsets) > d
+    intensities = (((d + offsets) / (4*(nu+offsets))).transpose() \
+                  * s_facts.transpose()).transpose()
+    intensities[n.abs(offsets)>d] = 0
+    angles = n.arcsin(n.linalg.norm(rlvs, axis=1)/(2*nu))
+    intensities = n.sum(intensities, axis=1)
+    intensities = intensities / n.sin(2*angles) * \
+                  (1 + n.cos(2*angles)**2)
+    
+    if niceify:
+        final_data = {}
+        for angle, intensity in zip(angles, intensities):
+            # These factors account for the size of the debye-scherrer ring
+            # and the polarization effects (assuming no polarization analysis)
+            old_angles = final_data.keys()
+            repeats = n.isclose(old_angles,round(360/n.pi*angle,2))
+            if any(repeats):
+                final_data[old_angles[n.nonzero(repeats)[0][0]]] = \
+                    n.hstack((final_data[old_angles[n.nonzero(repeats)[0][0]]],
+                              intensity))
+            else:
+                final_data[round(360/n.pi*angle,2)] = intensity
+        return final_data
+    else:
+        return intensities
+                
+            
+def summify(hardcore_data):
+    return {angle: n.sum(intensities) 
+            for angle, intensities in hardcore_data.items()}

@@ -96,6 +96,8 @@ class Crystal(object):
                             for atom, site in self.basis])
         return structure_factor
 
+    
+    
 #
 # This is the section of the code where some nice pre-made lattice
 # classes are defined.
