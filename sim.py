@@ -1,5 +1,6 @@
-from __future__ import print_function
+from __future__ import print_function, division
 import numpy as np
+from matplotlib import pyplot as p
 from lattice import *
 from time import time
 import sys
@@ -11,7 +12,6 @@ class Sim(object):
     fcc_lattice = FCC(atomic_spacing*np.sqrt(2))#0.52)
     fcc_basis = Basis([('H',[0,0,0])])
     fcc_crystal = fcc_lattice + fcc_basis
-    
     
     hcp_lattice = Hexagonal(atomic_spacing, atomic_spacing*np.sqrt(8/3))
     hcp_basis = Basis([('H',[0,0,0]),
@@ -55,8 +55,6 @@ class Sim(object):
         hcp_nums = np.round(hcp_vols / self.hcp_size**3)
         fcc_worthit = np.nonzero(fcc_nums)
         hcp_worthit = np.nonzero(hcp_nums)
-        fcc_angles = np.round(360/np.pi*np.arcsin(np.linalg.norm(
-            self.fcc_rlvs, axis=1)/(2*self.nu)),2)
 
         fcc_XRD = {}
         fcc_data = np.zeros((self.fcc_rlvs.shape[0],))
@@ -73,6 +71,8 @@ class Sim(object):
                 self.fcc_crystal, self.wavelength,
                 fcc_num,self.fcc_size,
                 rlvs=self.fcc_rlvs, s_facts=self.fcc_s_facts) * fluence
+        fcc_angles = np.round(360/np.pi*np.arcsin(np.linalg.norm(
+            self.fcc_rlvs, axis=1)/(2*self.nu)),2)
         
         for angle, intensity in zip(fcc_angles,fcc_data):
             if np.isclose(intensity,0):
@@ -99,10 +99,10 @@ class Sim(object):
                 self.hcp_crystal, self.wavelength,
                 hcp_num,self.hcp_size,
                 rlvs=self.hcp_rlvs, s_facts=self.hcp_s_facts) * fluence
-        
+
         hcp_angles = np.round(360/np.pi*np.arcsin(np.linalg.norm(
             self.hcp_rlvs, axis=1)/(2*self.nu)),2)
-
+        
         for angle, intensity in zip(hcp_angles,hcp_data):
             if np.isclose(intensity,0):
                 continue
@@ -154,3 +154,9 @@ if __name__ == '__main__':
     print('\n\nHCP\n---')
     for angle, intensity in sorted(hcp_data.items()):
         print(str(angle) + ':', intensity/max_hcp)
+    fcc_angles, fcc_intensity = spectrumify(fcc_data)
+    hcp_angles, hcp_intensity = spectrumify(hcp_data)
+    p.plot(fcc_angles, fcc_intensity)
+    p.plot(hcp_angles, hcp_intensity)
+    p.show()
+

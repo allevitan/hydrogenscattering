@@ -138,7 +138,6 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     kprimes = rlvs[:,None,:] - ks
     offsets = n.linalg.norm(kprimes,axis=2) - nu
 
-    #good = n.abs(offsets) > d
     intensities = (((d + offsets) / (4*(nu+offsets))).transpose() \
                   * s_facts.transpose()).transpose()
     intensities[n.abs(offsets)>d] = 0
@@ -155,16 +154,11 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
             old_angles = final_data.keys()
             repeats = n.isclose(old_angles,round(360/n.pi*angle,2))
             if any(repeats):
-                final_data[old_angles[n.nonzero(repeats)[0][0]]] = \
-                    n.hstack((final_data[old_angles[n.nonzero(repeats)[0][0]]],
-                              intensity))
+                final_data[old_angles[n.nonzero(repeats)[0][0]]] += \
+                                                    intensity
             else:
                 final_data[round(360/n.pi*angle,2)] = intensity
         return final_data
     else:
         return intensities
                 
-            
-def summify(hardcore_data):
-    return {angle: n.sum(intensities) 
-            for angle, intensities in hardcore_data.items()}
