@@ -24,7 +24,7 @@ class Sim(object):
     hcp_crystal = hcp_lattice + hcp_basis
 
 
-    def __init__(self, jet_profile, beam_profile, wavelength, sizes=[1.5,1.5]):
+    def __init__(self, jet_profile, beam_profile, wavelength, sizes=[0.5,0.5]):
         
         # We start by storing all the raw information we've been given
         self.fcc = jet_profile[0]
@@ -130,7 +130,7 @@ class Sim(object):
             n_fcc = np.sum(fcc_nums[fluence_slice])
             n_fcc = np.floor(n_fcc) + np.int(np.random.random() < n_fcc % 1)
             n_hcp = np.sum(hcp_nums[fluence_slice])
-            n_hcp = np.floor(n_fcc) + np.int(np.random.random() < n_fcc % 1)
+            n_hcp = np.floor(n_hcp) + np.int(np.random.random() < n_hcp % 1)
             
             # We calculate the average fluence seen by the fcc and
             # hcp crystallites in this fluence slice
@@ -160,16 +160,16 @@ class Sim(object):
         # scattering angle
         #
         for angle, intensity in zip(self.fcc_angles,fcc_data):
-            if np.isclose(intensity,0):
-                continue
+            #if np.isclose(intensity,0):
+            #    continue
             try:
                 fcc_XRD[angle] += intensity 
             except KeyError:
                 fcc_XRD[angle] = intensity 
  
         for angle, intensity in zip(self.hcp_angles,hcp_data):
-            if np.isclose(intensity,0):
-                continue
+            #if np.isclose(intensity,0):
+            #    continue
             try:
                 hcp_XRD[angle] += intensity 
             except KeyError:
@@ -180,6 +180,7 @@ class Sim(object):
 
 
 if __name__ == '__main__':
+
     #
     # We start by setting up the hydrogen jet. It has 2 parts:
     # an FCC intensity and an HCP intensity part
@@ -202,12 +203,12 @@ if __name__ == '__main__':
     beam_Xs, beam_Zs = np.meshgrid(beam_xs,beam_zs)
     beam = np.exp(-(beam_Xs**2 + beam_Zs**2)/(2*(10/2.355)**2))
     wide_beam = np.exp(-(beam_Xs**2 + beam_Zs**2)/(2*(30/2.355)**2))
-    double_beam = 0.9*beam #+ 0.099*wide_beam #+ 0.001
+    double_beam = 0.9*beam + 0.099*wide_beam + 0.001
     
     # And we set up the "simulation"
     sim = Sim((fcc_jet,hcp_jet),double_beam,2.255)
     print('Set up sim')
-    fcc_data, hcp_data = sim.sim(500)
+    fcc_data, hcp_data = sim.sim(600)
     max_fcc = max(fcc_data.values())
     max_hcp = max(hcp_data.values())
     print('\n\nFCC\n---')

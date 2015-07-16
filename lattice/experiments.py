@@ -119,7 +119,7 @@ def spectrumify(scattering_data):
     
 def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, niceify=False):
 
-    d = 1/n.float(l)
+    d = 1/n.float(l*1000) #conversion from um to Angstrom
     nu = 2*n.pi/wavelength
     # Now we renormalize the intensities to account for the fact that
     # the same lattice can be described by different unit cells
@@ -149,7 +149,7 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     # This makes the assumption that scattering is allowed in a sphere of
     # radius 1/l around the rlv, with magnitude of the scattering in that
     # sphere proportional to l**2, and the area of scattering not in the
-    # direction of the scattering vector proportional to l**2 as well
+    # direction of the scattering vector proportional to l**2 as well.
     # This assumption is justified because we are approximating the 
     # function (l*sinc(offset*l))**2 * l**2
     intensities = l**2 * (((d + offsets) / (4*(nu+offsets))).transpose() \
