@@ -126,20 +126,34 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     unit_vol = n.abs(n.dot(crystal.lattice[0],n.cross(
         crystal.lattice[1],crystal.lattice[2])))
 
+    # If pre-calculated rlvs and structure factors aren't provided,
+    # calculate them now
     if rlvs == None:
         rlvs = find_accessible_rlvs(crystal,wavelength)
     if s_facts == None:
         s_facts = n.array([n.abs(crystal.structure_factor(rlv)/unit_vol)**2
                    for rlv in rlvs])
     
+    # Now we generate <num> random vectors with length k (equivalent to
+    # generating <num> randomly oriented sets of rlvs for the same k)
     ks = n.random.rand(3,num) - 0.5
     ks = (ks / n.linalg.norm(ks, axis=0) * nu).transpose()
 
+    # Now we calculate the scattering vector that would be needed to
+    # acccess each rlv
     kprimes = rlvs[:,None,:] - ks
+    # And we calculate the difference in wavevector between that scattering
+    # vector and what it needs to be
     offsets = n.linalg.norm(kprimes,axis=2) - nu
 
-    intensities = (((d + offsets) / (4*(nu+offsets))).transpose() \
-                  * s_facts.transpose()).transpose()
+    # This makes the assumption that scattering is allowed in a sphere of
+    # radius 1/l around the rlv, with magnitude of the scattering in that
+    # sphere proportional to l**2, and the area of scattering not in the
+    # direction of the scattering vector proportional to l**2 as well
+    # This assumption is justified because we are approximating the 
+    # function (l*sinc(offset*l))**2 * l**2
+    intensities = l**2 * (((d + offsets) / (4*(nu+offsets))).transpose() \
+                  * s_facts.transpose()).transpose() * l**2
     intensities[n.abs(offsets)>d] = 0
     angles = n.arcsin(n.linalg.norm(rlvs, axis=1)/(2*nu))
     intensities = n.sum(intensities, axis=1)
