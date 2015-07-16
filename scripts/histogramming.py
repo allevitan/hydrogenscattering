@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 from matplotlib import pyplot as plt
 from sim import *
-from FCC_HCP import *
+from XRD_math import *
 
 #
 # We start by setting up the hydrogen jet. It has 2 parts:

@@ -2,7 +2,6 @@ from __future__ import print_function, division
 import numpy as np
 from matplotlib import pyplot as p
 from lattice import *
-from time import time
 import sys
 
 
@@ -72,6 +71,12 @@ class Sim(object):
         
         
     def sim(self, offset):
+        """
+        This takes an offset between the edge of the beam profile
+        and the edge of the jet profile in unts of pixels
+        (0.1 um). An offset of 500 is a centred beam, an
+        offset of 400 or 600 is a beam offset by 10 um. It outputs
+        the spectrum captured in a simulated single shot of the beam."""
         #
         # We start by just doing geometric manipulations to turn the
         # beam and jet profiles into 2D "side-on view" arrays, and we

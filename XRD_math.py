@@ -1,11 +1,23 @@
-
 from __future__ import division, print_function
 import numpy as np
 from matplotlib import pyplot as p
 from lattice import *
 
+#
+# This file contains functions that perform calculations with the
+# "ideal" powder XRD spectra - both generating fake spectra for
+# ideal mixtures, and using real spectra to calculate the volume
+# fractions of fcc and hcp phases using the ideal spectrum.
+#
+# It is worth noting that this file is very specialized - it's not
+# very portable and wouldn't work on other scattering systems
+#
 
-# Set up the crystal structure
+
+#
+# Set up the crystal structures
+#
+
 atomic_spacing = 3.78
 
 fcc_lattice = FCC(atomic_spacing*np.sqrt(2))#0.52)
@@ -20,7 +32,10 @@ hcp_basis = Basis([('H',[0,0,0]),
 hcp_crystal = hcp_lattice + hcp_basis
 
 
-# Plot a simulated XRD with copper radiation
+#
+# Simulate the powder XRD
+#
+
 fcc_data = powder_XRD(fcc_crystal, 2.255)
 fcc_angles, fcc_intensity = spectrumify(fcc_data)
 hcp_data = powder_XRD(hcp_crystal, 2.255)
@@ -28,7 +43,15 @@ hcp_angles, hcp_intensity = spectrumify(hcp_data)
 window = np.logical_and(fcc_angles<=55,fcc_angles>=25)
 
 
+#
+# Define some functions to play with that data
+#
+
 def calc_HCP_percentage(peak_1,peak_2):
+    """
+    Takes the heights of the 40 degree peak and the 42 degree
+    peak and turns that information into the volume percentage
+    of HCP using the ideal spectra for the hcp and fcc phases"""
     hcp1 = sorted(hcp_data.items())[0][1]
     hcp2 = sorted(hcp_data.items())[1][1]
     fcc = sorted(fcc_data.items())[0][1]
@@ -57,6 +80,8 @@ def mixture_graph(ratio):
     hcp_scaled = hcp_scaling * hcp_intensity[window],
     return (fcc_angles[window], fcc_scaled, hcp_scaled,
             fcc_scaled + hcp_scaled)
+
+
 
 if __name__ == '__main__':
 
