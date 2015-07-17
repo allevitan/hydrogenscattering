@@ -18,9 +18,9 @@ from lattice import *
 # Set up the crystal structures
 #
 
-atomic_spacing = 3.78
+atomic_spacing = 3.782
 
-fcc_lattice = FCC(atomic_spacing*np.sqrt(2))#0.52)
+fcc_lattice = FCC(atomic_spacing*np.sqrt(2))
 fcc_basis = Basis([('H',[0,0,0])])
 fcc_crystal = fcc_lattice + fcc_basis
 
@@ -36,11 +36,11 @@ hcp_crystal = hcp_lattice + hcp_basis
 # Simulate the powder XRD
 #
 
-fcc_data = powder_XRD(fcc_crystal, 2.255)
+fcc_data = powder_XRD(fcc_crystal, 2.265)
 fcc_angles, fcc_intensity = spectrumify(fcc_data)
-hcp_data = powder_XRD(hcp_crystal, 2.255)
+hcp_data = powder_XRD(hcp_crystal, 2.265)
 hcp_angles, hcp_intensity = spectrumify(hcp_data)
-window = np.logical_and(fcc_angles<=55,fcc_angles>=25)
+window = np.logical_and(fcc_angles<=55,fcc_angles>=35)
 
 
 #
@@ -76,8 +76,8 @@ def mixture_graph(ratio):
     with any provided hcp/fcc ratio"""
     fcc_scaling = 1 / (ratio + 1)
     hcp_scaling = ratio / (ratio + 1)
-    fcc_scaled = fcc_scaling * fcc_intensity[window],
-    hcp_scaled = hcp_scaling * hcp_intensity[window],
+    fcc_scaled = fcc_scaling * fcc_intensity[window]
+    hcp_scaled = hcp_scaling * hcp_intensity[window]
     return (fcc_angles[window], fcc_scaled, hcp_scaled,
             fcc_scaled + hcp_scaled)
 
@@ -85,8 +85,8 @@ def mixture_graph(ratio):
 
 if __name__ == '__main__':
 
-    #for ang, inten in sorted(hcp_data.items()):
-    #    print("%.2f" % ang, inten)
+    for ang, inten in sorted(fcc_data.items()):
+        print("%.2f" % ang, inten / max(fcc_data.values()) * 100)
 
     p.plot(fcc_angles[window], fcc_intensity[window])
     p.plot(hcp_angles[window], hcp_intensity[window])

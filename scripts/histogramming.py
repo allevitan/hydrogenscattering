@@ -49,6 +49,7 @@ for fcc_datum, hcp_datum in zip(fcc_data, hcp_data):
 
 np.savetxt('0.5um_fcc_big.csv',np.array(hcp_percents))
 
+
 print(hcp_percents)
     
 

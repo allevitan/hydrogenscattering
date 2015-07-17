@@ -10,7 +10,7 @@ class Sim(object):
     # The sim object stores the crystal structure information as
     # a class attribute - no reason to create new versions of the
     # same info for every new sim
-    atomic_spacing = 3.78
+    atomic_spacing = 3.782
     
     fcc_lattice = FCC(atomic_spacing*np.sqrt(2))#0.52)
     fcc_basis = Basis([('H',[0,0,0])])
@@ -67,10 +67,14 @@ class Sim(object):
             n.array([n.abs(self.hcp_crystal.structure_factor(rlv)\
                            /self.hcp_unit_vol)**2
                      for rlv in self.hcp_rlvs])
-
+        
+        # Remove the rlvs with s_fact=0 from HCP (FCC doesn't have any)
+        good = np.logical_not(np.isclose(self.hcp_s_facts,0))
+        self.hcp_rlvs = self.hcp_rlvs[good,:]
+        self.hcp_s_facts = self.hcp_s_facts[good]
         
         
-    def sim(self, offset):
+    def sim(self, offset, proof_plots=False):
         """
         This takes an offset between the edge of the beam profile
         and the edge of the jet profile in unts of pixels
@@ -86,7 +90,7 @@ class Sim(object):
         fcc_flat = np.sum(self.fcc,axis=1)
         hcp_flat = np.sum(self.hcp,axis=1)
         beam = self.beam[offset:offset+len(fcc_flat)].transpose()
-
+            
         #
         # Now we convert the fcc and hcp volume densities into
         # fcc and hcp volumes by multiplying by the pixel size
@@ -98,6 +102,14 @@ class Sim(object):
         fcc_nums = fcc_vols / self.fcc_size**3
         hcp_nums = hcp_vols / self.hcp_size**3
 
+        if proof_plots == True:
+            f, (ax1,ax2,ax3) = p.subplots(1,3)
+            ax1.imshow(beam)
+            ax1.set_title('Laser Fluence')
+            ax2.imshow(hcp_vols)
+            ax2.set_title('HCP Density')
+            ax3.imshow(fcc_vols)
+            ax3.set_title('FCC Density')
         
         #
         # Now we chunk the beam data into 100 bins by fluence.
@@ -107,12 +119,26 @@ class Sim(object):
         # fluence is a lot more jumpy than 1000 crystallites seing
         # low fluence)
         #
+        nbins = 100
         fluence_bins = np.linspace(np.min(beam[beam.nonzero()]),
-                                   np.max(beam)+0.0001,101)
+                                   np.max(beam)+0.0001,nbins+1)
         fluence_slices = [(beam >= fluence_bins[i]) &
-                              (beam < fluence_bins[i+1])
-                              for i in range(0,100)]
+                          (beam < fluence_bins[i+1])
+                          for i in range(0,nbins)]
 
+        if proof_plots == True:
+            nbins = 15
+            fluence_bins = np.linspace(np.min(beam[beam.nonzero()]),
+                                       np.max(beam)+0.0001,nbins+1)
+            fluence_slices = [(beam >= fluence_bins[i]) &
+                              (beam < fluence_bins[i+1])
+                              for i in range(0,nbins)]
+            fluence_showing = np.zeros(beam.shape)
+            for i, fluence_slice in enumerate(fluence_slices):
+                fluence_showing += i*fluence_slice
+            p.figure()
+            p.imshow(fluence_showing[350:-350,:])
+            p.title('After Fluence Slicing (exaggerated bin size)')
         
         fcc_XRD = {}
         fcc_data = np.zeros((self.fcc_rlvs.shape[0],))

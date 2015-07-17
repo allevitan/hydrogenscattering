@@ -146,14 +146,9 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     # vector and what it needs to be
     offsets = n.linalg.norm(kprimes,axis=2) - nu
 
-    # This makes the assumption that scattering is allowed in a sphere of
-    # radius 1/l around the rlv, with magnitude of the scattering in that
-    # sphere proportional to l**2, and the area of scattering not in the
-    # direction of the scattering vector proportional to l**2 as well.
-    # This assumption is justified because we are approximating the 
-    # function (l*sinc(offset*l))**2 * l**2
+    # ???
     intensities = l**2 * (((d + offsets) / (4*(nu+offsets))).transpose() \
-                  * s_facts.transpose()).transpose() * l**2
+                  * s_facts.transpose()).transpose() * l**3
     intensities[n.abs(offsets)>d] = 0
     angles = n.arcsin(n.linalg.norm(rlvs, axis=1)/(2*nu))
     intensities = n.sum(intensities, axis=1)
