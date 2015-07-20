@@ -12,11 +12,11 @@ from XRD_math import *
 xs = np.linspace(-5,5,101)
 ys = np.linspace(-5,5,101)
 Xs,Ys = np.meshgrid(xs,ys)
-#hcp_jet = (np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
-#fcc_jet = np.zeros(hcp_jet.shape).astype(float)
-fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
-                         (np.sqrt(Xs**2 + Ys**2) >= 1.75)).astype(float)
-hcp_jet = (np.sqrt(Xs**2 + Ys**2) <1.74).astype(float)
+hcp_jet = (np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
+fcc_jet = np.zeros(hcp_jet.shape).astype(float)
+#fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
+#                         (np.sqrt(Xs**2 + Ys**2) >= 1.75)).astype(float)
+#hcp_jet = (np.sqrt(Xs**2 + Ys**2) <1.74).astype(float)
 
 #
 # Now we set up the beam profile, as a distribution of fluence
@@ -34,7 +34,7 @@ double_beam = 0.9*beam + 0.01*wide_beam #+ 0.001
 sim = Sim((fcc_jet,hcp_jet),double_beam,2.255,[1,0.3])
 fcc_data = []
 hcp_data = []
-for i in range(0,1000):
+for i in range(0,500):
     print(i)
     fcc_datum, hcp_datum = sim.sim(500)
     fcc_data.append(fcc_datum)

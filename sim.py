@@ -69,9 +69,9 @@ class Sim(object):
                      for rlv in self.hcp_rlvs])
         
         # Remove the rlvs with s_fact=0 from HCP (FCC doesn't have any)
-        good = np.logical_not(np.isclose(self.hcp_s_facts,0))
-        self.hcp_rlvs = self.hcp_rlvs[good,:]
-        self.hcp_s_facts = self.hcp_s_facts[good]
+        #good = np.logical_not(np.isclose(self.hcp_s_facts,0))
+        #self.hcp_rlvs = self.hcp_rlvs[good,:]
+        #self.hcp_s_facts = self.hcp_s_facts[good]
         
         
     def sim(self, offset, proof_plots=False):
@@ -127,15 +127,15 @@ class Sim(object):
                           for i in range(0,nbins)]
 
         if proof_plots == True:
-            nbins = 15
-            fluence_bins = np.linspace(np.min(beam[beam.nonzero()]),
-                                       np.max(beam)+0.0001,nbins+1)
-            fluence_slices = [(beam >= fluence_bins[i]) &
-                              (beam < fluence_bins[i+1])
-                              for i in range(0,nbins)]
+            fake_nbins = 15
+            fake_fluence_bins = np.linspace(np.min(beam[beam.nonzero()]),
+                                       np.max(beam)+0.0001,fake_nbins+1)
+            fake_fluence_slices = [(beam >= fake_fluence_bins[i]) &
+                              (beam < fake_fluence_bins[i+1])
+                              for i in range(0,fake_nbins)]
             fluence_showing = np.zeros(beam.shape)
-            for i, fluence_slice in enumerate(fluence_slices):
-                fluence_showing += i*fluence_slice
+            for i, fake_fluence_slice in enumerate(fake_fluence_slices):
+                fluence_showing += i*fake_fluence_slice
             p.figure()
             p.imshow(fluence_showing[350:-350,:])
             p.title('After Fluence Slicing (exaggerated bin size)')

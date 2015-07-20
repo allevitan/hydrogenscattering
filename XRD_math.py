@@ -85,8 +85,8 @@ def mixture_graph(ratio):
 
 if __name__ == '__main__':
 
-    for ang, inten in sorted(fcc_data.items()):
-        print("%.2f" % ang, inten / max(fcc_data.values()) * 100)
+    for ang, inten in sorted(hcp_data.items()):
+        print("%.2f" % ang, inten / max(hcp_data.values()) * 100)
 
     p.plot(fcc_angles[window], fcc_intensity[window])
     p.plot(hcp_angles[window], hcp_intensity[window])

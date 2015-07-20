@@ -99,28 +99,12 @@ def powder_XRD(crystal,wavelength, get_mults=False):
     else:
         return intensities
 
-def spectrumify(scattering_data):
-    """
-    This is just a nice function to turn the raw scattering data
-    into a human-readable approximation of a scattering spectrum
-    """
-    graph_angles = n.linspace(0,180,5000)
-    graph_intensities = n.zeros(graph_angles.shape)
-    
-    max_peak = n.max(scattering_data.values())
-    
-    for angle, intensity in sorted(scattering_data.items()):
-        graph_intensities += intensity * \
-                             n.exp(-(graph_angles - angle)**2 / (2*(0.1)**2))
-        
-    return graph_angles, graph_intensities
-
+def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, niceify=False, direct=False, angles=None):
 
     
-def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, niceify=False):
-
-    d = 1/n.float(l*1000) #conversion from um to Angstrom
+    d = n.pi/n.float(l*10000) #10000 is a conversion from um to Angstrom
     nu = 2*n.pi/wavelength
+
     # Now we renormalize the intensities to account for the fact that
     # the same lattice can be described by different unit cells
     unit_vol = n.abs(n.dot(crystal.lattice[0],n.cross(
@@ -138,19 +122,29 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     # generating <num> randomly oriented sets of rlvs for the same k)
     ks = n.random.rand(3,num) - 0.5
     ks = (ks / n.linalg.norm(ks, axis=0) * nu).transpose()
-
+    
     # Now we calculate the scattering vector that would be needed to
     # acccess each rlv
     kprimes = rlvs[:,None,:] - ks
     # And we calculate the difference in wavevector between that scattering
     # vector and what it needs to be
-    offsets = n.linalg.norm(kprimes,axis=2) - nu
+    knorms = n.linalg.norm(kprimes,axis=2)
+    offsets = knorms - nu
+    
+    if direct:
+        picks = n.abs(offsets) < d
+        calcangles = n.arccos(n.sum(-kprimes*ks,axis=2) / (nu*knorms))
+        picked_angles = calcangles[picks]
+        picked_offsets = offsets[picks]
+        picked_s_facts = (s_facts.transpose() *
+                          n.ones(calcangles.shape).transpose()).transpose()[picks]
+        return picked_angles, picked_offsets, picked_s_facts
 
-    # ???
     intensities = l**2 * (((d + offsets) / (4*(nu+offsets))).transpose() \
                   * s_facts.transpose()).transpose() * l**3
     intensities[n.abs(offsets)>d] = 0
     angles = n.arcsin(n.linalg.norm(rlvs, axis=1)/(2*nu))
+    #calcangs = n.average(calcangles,weights=offsets<d
     intensities = n.sum(intensities, axis=1)
     intensities = intensities / n.sin(2*angles) * \
                   (1 + n.cos(2*angles)**2)
@@ -170,4 +164,34 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
         return final_data
     else:
         return intensities
-                
+
+
+
+def spectrumify(scattering_data):
+    """
+    This is just a nice function to turn the raw scattering data
+    into a human-readable approximation of a scattering spectrum
+    """
+    graph_angles = n.linspace(0,180,10000)
+    graph_intensities = n.zeros(graph_angles.shape)
+    
+    for angle, intensity in sorted(scattering_data.items()):
+        graph_intensities += intensity * \
+                             n.exp(-(graph_angles - angle)**2 / (2*(0.1)**2))
+        
+    return graph_angles, graph_intensities
+
+
+
+
+def gen_full_spectrum(angles, offsets, s_facts, crystal_size, wavelength):
+    d = n.pi / (crystal_size*10000)
+    nu = 2*n.pi/wavelength
+    maxoff = n.amax(offsets)
+    graph_angles = n.linspace(0,n.pi,10000)
+    graph_intensities = n.zeros(graph_angles.shape)
+    for angle, offset, s_fact in zip(angles, offsets, s_facts):
+        int_squared = n.maximum(0,d**2 - offset**2 - 
+                                ((angle-graph_angles)*nu)**2)
+        graph_intensities += n.sqrt(int_squared) * s_fact
+    return graph_angles*180/n.pi, graph_intensities

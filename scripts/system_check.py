@@ -66,13 +66,19 @@ fcc_norm_ideal = fcc_ideal / np.max(fcc_ideal)
 p.figure()
 p.plot(angles_ideal,hcp_ideal,'b-')
 p.plot(angles_ideal,fcc_ideal,'r-')
-p.xlabel('Scattering Angle $2\theta$')
+p.xlabel(r'Scattering Angle $2\theta$')
 p.ylabel('Intensity (arbitrary units)')
 p.legend(['HCP Contribution','FCC Contribution'])
 p.title('Simulated Ideal Spectrum of 1:1 HCP:FCC Mixture')
 
 
 n_cryst = 100000
+
+angles, offsets, s_facts = hardcore_powder_XRD(sim.hcp_crystal,
+                                               sim.wavelength,
+                                               n_cryst,0.1,
+                                               direct=True)
+
 
 hcp_sim = hardcore_powder_XRD(sim.hcp_crystal,sim.wavelength,n_cryst,0.5,
                               niceify=True)
@@ -86,7 +92,7 @@ window = (hcp_sim_angles > 35) & (hcp_sim_angles < 55)
 p.figure()
 p.plot(hcp_sim_angles[window], hcp_sim_norm_ints[window],'b')
 p.plot(angles_ideal, hcp_norm_ideal, 'k--')
-p.xlabel('Scattering Angle $2\theta$')
+p.xlabel(r'Scattering Angle $2\theta$')
 p.ylabel('Normalized Intensity')
 p.legend(['Simulated HCP Spectrum',
          'Ideal HCP Spectrum',])
@@ -96,27 +102,78 @@ p.title('Comparing Ideal HCP Spectrum to a Direct Simulation of ' \
 p.figure()
 p.plot(fcc_sim_angles[window], fcc_sim_norm_ints[window],'r')
 p.plot(angles_ideal, fcc_norm_ideal, 'k--')
-p.xlabel('Scattering Angle $2\theta$')
+p.xlabel(r'Scattering Angle $2\theta$')
 p.ylabel('Normalized Intensity')
 p.legend(['Simulated FCC Spectrum',
          'Ideal FCC Spectrum',])
 p.title('Comparing Ideal FCC Spectrum to a Direct Simulation of ' \
         + str(n_cryst) + ' Crystallites')
 
+empty_jet = 0 * fcc_jet
+full_jet = fcc_jet + hcp_jet
+small_sim = Sim((empty_jet,full_jet),double_beam, 2.265, [0.125,0.125])
+med_sim = Sim((empty_jet,full_jet),double_beam, 2.265, [0.25,0.25])
+large_sim = Sim((empty_jet,full_jet),double_beam, 2.265, [0.5,0.5])
 
-hcp_sim_small = hardcore_powder_XRD(sim.hcp_crystal,sim.wavelength,n_cryst,0.1, niceify=True)
-hcp_sim_big = hardcore_powder_XRD(sim.hcp_crystal,sim.wavelength,n_cryst,2, niceify=True)
-hcp_small_angles, hcp_small_intensities = spectrumify(hcp_sim_small)
-hcp_big_angles, hcp_big_intensities = spectrumify(hcp_sim_big)
+print(0)
+small_hcp_data = small_sim.sim(550)[1]
+med_hcp_data = med_sim.sim(550)[1]
+large_hcp_data = large_sim.sim(550)[1]
+
+small_hcp_data = {angle: [intensity] for angle, intensity
+                  in small_hcp_data.items()}
+med_hcp_data = {angle: [intensity] for angle, intensity
+                  in med_hcp_data.items()}
+large_hcp_data = {angle: [intensity] for angle, intensity
+                  in large_hcp_data.items()}
+
+for i in range(0,50):
+    print(i+1)
+    s = small_sim.sim(550)[1]
+    m = med_sim.sim(550)[1]
+    l = large_sim.sim(550)[1]
+    for angle, intensity in s.items():
+        small_hcp_data[angle] += [intensity]
+    for angle, intensity in m.items():
+        med_hcp_data[angle] += [intensity]
+    for angle, intensity in l.items():
+        large_hcp_data[angle] += [intensity]
+
 p.figure()
-p.plot(hcp_small_angles, hcp_small_intensities / 0.1**3)
-p.plot(hcp_sim_angles, hcp_sim_intensities / 0.5**3)
-p.plot(hcp_big_angles, hcp_big_intensities / 2**3)
-p.xlabel('Scattering Angle $2\theta$')
-p.ylabel('Non-normalized Intensity (arbitrary units)')
-p.legend(['0.1 um grains','0.5 um grains','2 um grains'])
-p.title('Comparing Intensity of Simulated Spectra at Different Grain Sizes')
+small_hcp_angles, small_hcp_intensities = spectrumify(
+    {angle: np.average(intensities) for angle, intensities
+     in small_hcp_data.items()})
+med_hcp_angles, med_hcp_intensities = spectrumify(
+    {angle: np.average(intensities) for angle, intensities
+     in med_hcp_data.items()})
+large_hcp_angles, large_hcp_intensities = spectrumify(
+    {angle: np.average(intensities) for angle, intensities
+     in large_hcp_data.items()})
+p.plot(large_hcp_angles,large_hcp_intensities, 'r-')
+p.plot(med_hcp_angles,med_hcp_intensities, 'g-')
+p.plot(small_hcp_angles,small_hcp_intensities, 'b-')
+for angle, intensities in large_hcp_data.items():
+    p.errorbar(angle, np.average(intensities), 
+               yerr=np.std(intensities), fmt='r', capsize=10)
+for angle, intensities in med_hcp_data.items():
+    p.errorbar(angle, np.average(intensities), 
+               yerr=np.std(intensities), fmt='g', capsize=10)
+for angle, intensities in small_hcp_data.items():
+    p.errorbar(angle, np.average(intensities), 
+               yerr=np.std(intensities), fmt='b', capsize=10)
+p.title('Scattering Intensities from a Pure HCP Jet')
+p.legend(['0.5 um grains','0.25 um grains','0.125 um grains'], loc=2)
+p.xlabel(r'Scattering Angle $2\theta$')
+p.ylabel('Non-Normalized Intensity (arbitrary units)')
 
+
+p.figure()
+broad_ang, broad_int = gen_full_spectrum(angles,offsets,s_facts,0.1,sim.wavelength)
+p.plot(broad_ang,broad_int)
+p.title('Full Simulation Including Scherrer Broadening')
+p.xlabel(r'Scattering Angle $2\theta$')
+p.ylabel('Non-Normalized Intensity (arbitrary units)')
+p.show()
 
 
 p.show()
