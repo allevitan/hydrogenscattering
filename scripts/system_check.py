@@ -74,12 +74,6 @@ p.title('Simulated Ideal Spectrum of 1:1 HCP:FCC Mixture')
 
 n_cryst = 100000
 
-angles, offsets, s_facts = hardcore_powder_XRD(sim.hcp_crystal,
-                                               sim.wavelength,
-                                               n_cryst,0.1,
-                                               direct=True)
-
-
 hcp_sim = hardcore_powder_XRD(sim.hcp_crystal,sim.wavelength,n_cryst,0.5,
                               niceify=True)
 fcc_sim = hardcore_powder_XRD(sim.fcc_crystal,sim.wavelength,n_cryst,0.5,
@@ -166,6 +160,12 @@ p.legend(['0.5 um grains','0.25 um grains','0.125 um grains'], loc=2)
 p.xlabel(r'Scattering Angle $2\theta$')
 p.ylabel('Non-Normalized Intensity (arbitrary units)')
 
+
+
+angles, offsets, s_facts = hardcore_powder_XRD(sim.hcp_crystal,
+                                               sim.wavelength,
+                                               n_cryst,0.1,
+                                               direct=True)
 
 p.figure()
 broad_ang, broad_int = gen_full_spectrum(angles,offsets,s_facts,0.1,sim.wavelength)

@@ -99,7 +99,7 @@ def powder_XRD(crystal,wavelength, get_mults=False):
     else:
         return intensities
 
-def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, niceify=False, direct=False, angles=None):
+def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, niceify=False, direct=False, detector_angle=None):
 
     
     d = n.pi/n.float(l*10000) #10000 is a conversion from um to Angstrom
@@ -121,11 +121,20 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     # Now we generate <num> random vectors with length k (equivalent to
     # generating <num> randomly oriented sets of rlvs for the same k)
     ks = n.random.rand(3,num) - 0.5
+    #phi_0s = n.random.rand(num) * 2*n.pi
     ks = (ks / n.linalg.norm(ks, axis=0) * nu).transpose()
     
     # Now we calculate the scattering vector that would be needed to
     # acccess each rlv
     kprimes = rlvs[:,None,:] - ks
+    #ang_vecs = n.cross(kprimes,ks[None,:,:])
+    #zero_angs = n.cross([1,0,0],ks)
+    #ang_vecs = ang_vecs / n.linalg.norm(ang_vecs,axis=2)[:,:,None]
+    #zero_angs = zero_angs / n.linalg.norm(zero_angs,axis=1)[:,None]
+    #dots = n.sum(ang_vecs*zero_angs[None,:,:],axis=2)
+    #crosses = n.sum(ks[None,:,:]*n.cross(ang_vecs,zero_angs[None,:,:]),axis=2)/nu
+    #az_angs =  n.pi*(1 - n.sign(dots))/2 + n.arcsin(crosses)*n.sign(dots) - phi_0s
+    
     # And we calculate the difference in wavevector between that scattering
     # vector and what it needs to be
     knorms = n.linalg.norm(kprimes,axis=2)
@@ -185,6 +194,13 @@ def spectrumify(scattering_data):
 
 
 def gen_full_spectrum(angles, offsets, s_facts, crystal_size, wavelength):
+    # phis = n.linspace(0,n.pi/2,1000)
+    # angle_grid = n.linspace(0,n.pi,500)
+    # offset_grid = n.linspace(-3*n.pi/crystal_size,3*n.pi/crystal_size,500)
+    # angle_grid,offset_grid = n.meshgrid(angle_grid,offset_grid)
+    
+    
+    
     d = n.pi / (crystal_size*10000)
     nu = 2*n.pi/wavelength
     maxoff = n.amax(offsets)

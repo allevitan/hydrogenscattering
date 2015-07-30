@@ -25,6 +25,8 @@ fcc_basis = Basis([('H',[0,0,0])])
 fcc_crystal = fcc_lattice + fcc_basis
 
 
+a = atomic_spacing
+c = atomic_spacing*np.sqrt(8/3)
 hcp_lattice = Hexagonal(atomic_spacing, atomic_spacing*np.sqrt(8/3))
 hcp_basis = Basis([('H',[0,0,0]),
                    ('H', [0.5,0.5/np.sqrt(3),np.sqrt(2/3)])],

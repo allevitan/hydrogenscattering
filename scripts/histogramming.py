@@ -12,11 +12,12 @@ from XRD_math import *
 xs = np.linspace(-5,5,101)
 ys = np.linspace(-5,5,101)
 Xs,Ys = np.meshgrid(xs,ys)
-hcp_jet = (np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
-fcc_jet = np.zeros(hcp_jet.shape).astype(float)
-#fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
-#                         (np.sqrt(Xs**2 + Ys**2) >= 1.75)).astype(float)
-#hcp_jet = (np.sqrt(Xs**2 + Ys**2) <1.74).astype(float)
+#hcp_jet = 0.7*(np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
+#fcc_jet = np.zeros(hcp_jet.shape).astype(float)
+#fcc_jet = 0.3*(np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
+fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
+                         (np.sqrt(Xs**2 + Ys**2) >= 2.09)).astype(float)
+hcp_jet = (np.sqrt(Xs**2 + Ys**2) < 2.09).astype(float)
 
 #
 # Now we set up the beam profile, as a distribution of fluence
@@ -31,25 +32,29 @@ double_beam = 0.9*beam + 0.01*wide_beam #+ 0.001
 
 
 # And we set up the "simulation"
-sim = Sim((fcc_jet,hcp_jet),double_beam,2.255,[1,0.3])
+sim = Sim((fcc_jet,hcp_jet),double_beam,2.255,[0.8,0.32])
 fcc_data = []
 hcp_data = []
-for i in range(0,500):
+for i in range(0,1000):
     print(i)
-    fcc_datum, hcp_datum = sim.sim(500)
+    fcc_datum, hcp_datum = sim.sim(500 + 50 + 0.5*np.random.randn())
     fcc_data.append(fcc_datum)
     hcp_data.append(hcp_datum)
 
-hcp_percents = []
+#hcp_percents = []
+peak_1s = []
+peak_2s = []
 for fcc_datum, hcp_datum in zip(fcc_data, hcp_data):
     peak_1 = sorted(hcp_datum.items())[1][1]
     peak_2 = sorted(fcc_datum.items())[0][1] + \
              sorted(hcp_datum.items())[2][1]
-    hcp_percents.append(calc_HCP_percentage(peak_1,peak_2))
+    peak_1s.append(peak_1)
+    peak_2s.append(peak_2)
+    #hcp_percents.append(calc_HCP_percentage(peak_1,peak_2))
 
-np.savetxt('0.5um_fcc_big.csv',np.array(hcp_percents))
 
+np.savetxt('0.32hcp_0.8fcc_sheath_0.5umjitter.csv',np.vstack([peak_1s,peak_2s]))
 
-print(hcp_percents)
-    
+#print(hcp_percents)
+
 
