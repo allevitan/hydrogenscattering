@@ -2,8 +2,17 @@ from __future__ import division, print_function
 import numpy as np
 from matplotlib import pyplot as p
 from sim import *
+from monte_carlo import *
 from XRD_math import *
 
+
+#
+#
+# This script just generates a lot of relevant graphs. It's
+# designed to just make sure that all the different parts are
+# working correctly.
+#
+#
 
 wavelength = 2.253
 
@@ -76,9 +85,9 @@ p.title('Simulated Ideal Spectrum of 1:1 HCP:FCC Mixture')
 
 n_cryst = 100000
 
-hcp_sim = hardcore_powder_XRD(sim.hcp_crystal,sim.wavelength,n_cryst,0.5,
+hcp_sim = monte_carlo_XRD(sim.hcp_crystal,sim.wavelength,n_cryst,0.5,
                               niceify=True)
-fcc_sim = hardcore_powder_XRD(sim.fcc_crystal,sim.wavelength,n_cryst,0.5,
+fcc_sim = monte_carlo_XRD(sim.fcc_crystal,sim.wavelength,n_cryst,0.5,
                               niceify=True)
 hcp_sim_angles, hcp_sim_intensities = spectrumify(hcp_sim)
 fcc_sim_angles, fcc_sim_intensities = spectrumify(fcc_sim)
@@ -170,7 +179,7 @@ p.ylabel('Non-Normalized Intensity (arbitrary units)')
 
 
 
-# angles, offsets, s_facts = hardcore_powder_XRD(sim.hcp_crystal,
+# angles, offsets, s_facts = monte_carlo_XRD(sim.hcp_crystal,
 #                                                sim.wavelength,
 #                                                n_cryst,0.1,
 #                                                direct=True)

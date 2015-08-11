@@ -5,6 +5,18 @@ from sim import *
 from XRD_math import *
 
 #
+#
+# This script simulates 1000 shots and returns the peak 1 and peak 2
+# heights for each shot. It can be made to simulate systems with 
+# different jets, beams, jitters, etc. It mostly doesn't provide
+# great results - it's not really possible to use the histograms
+# to pin down very much.
+#
+#
+
+
+
+#
 # We start by setting up the hydrogen jet. It has 2 parts:
 # an FCC intensity and an HCP intensity part
 #
@@ -12,12 +24,11 @@ from XRD_math import *
 xs = np.linspace(-5,5,101)
 ys = np.linspace(-5,5,101)
 Xs,Ys = np.meshgrid(xs,ys)
-#hcp_jet = 0.7*(np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
-#fcc_jet = np.zeros(hcp_jet.shape).astype(float)
-#fcc_jet = 0.3*(np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
-fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
-                         (np.sqrt(Xs**2 + Ys**2) >= 2.09)).astype(float)
-hcp_jet = (np.sqrt(Xs**2 + Ys**2) < 2.09).astype(float)
+hcp_jet = 0.65*(np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
+fcc_jet = 0.35*(np.sqrt(Xs**2 + Ys**2) <2.5).astype(float)
+#fcc_jet = np.logical_and((np.sqrt(Xs**2 + Ys**2) <= 2.5),
+#                         (np.sqrt(Xs**2 + Ys**2) >= 2.09)).astype(float)
+#hcp_jet = (np.sqrt(Xs**2 + Ys**2) < 2.09).astype(float)
 
 #
 # Now we set up the beam profile, as a distribution of fluence
@@ -41,7 +52,7 @@ for i in range(0,1000):
     fcc_data.append(fcc_datum)
     hcp_data.append(hcp_datum)
 
-#hcp_percents = []
+
 peak_1s = []
 peak_2s = []
 for fcc_datum, hcp_datum in zip(fcc_data, hcp_data):
@@ -50,11 +61,8 @@ for fcc_datum, hcp_datum in zip(fcc_data, hcp_data):
              sorted(hcp_datum.items())[2][1]
     peak_1s.append(peak_1)
     peak_2s.append(peak_2)
-    #hcp_percents.append(calc_HCP_percentage(peak_1,peak_2))
 
 
 np.savetxt('0.32hcp_0.8fcc_sheath_0.5umjitter.csv',np.vstack([peak_1s,peak_2s]))
-
-#print(hcp_percents)
 
 

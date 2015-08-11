@@ -3,6 +3,18 @@ import numpy as np
 from matplotlib import pyplot as p
 from sim import *
 
+
+#
+#
+# This script simulates XFEL shots, and remembers how many scattering
+# events occured during each shot. It assumes the maximum scattering
+# intensity is 3 orders of magnitude above the noise floor (this comes
+# from our actual data) and counts all shots within 3 orders of
+# magnitude of the max
+#
+#
+
+
 xs = np.linspace(-5,5,101)
 ys = np.linspace(-5,5,101)
 Xs,Ys = np.meshgrid(xs,ys)
