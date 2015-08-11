@@ -19,6 +19,7 @@ from lattice import *
 #
 
 atomic_spacing = 3.782
+wavelength = 2.253
 
 fcc_lattice = FCC(atomic_spacing*np.sqrt(2))
 fcc_basis = Basis([('H',[0,0,0])])
@@ -34,15 +35,16 @@ hcp_basis = Basis([('H',[0,0,0]),
 hcp_crystal = hcp_lattice + hcp_basis
 
 
+
 #
 # Simulate the powder XRD
 #
 
-fcc_data = powder_XRD(fcc_crystal, 2.265)
+fcc_data = powder_XRD(fcc_crystal, 2.253)
 fcc_angles, fcc_intensity = spectrumify(fcc_data)
-hcp_data = powder_XRD(hcp_crystal, 2.265)
+hcp_data = powder_XRD(hcp_crystal, 2.253)
 hcp_angles, hcp_intensity = spectrumify(hcp_data)
-window = np.logical_and(fcc_angles<=55,fcc_angles>=35)
+window = np.logical_and(fcc_angles<=52,fcc_angles>=38)
 
 
 #
@@ -60,6 +62,16 @@ def calc_HCP_percentage(peak_1,peak_2):
     hcp_part = peak_1 / hcp1
     fcc_part = (peak_2 - peak_1 * hcp2 / hcp1) / fcc 
     return hcp_part / (hcp_part + fcc_part) * 100
+
+
+def calc_HCP_parity(peak_1,peak_3):
+    hcp1 = sorted(hcp_data.items())[0][1]
+    hcp3 = sorted(hcp_data.items())[2][1]
+    hcp_part_1 = peak_1 / hcp1
+    hcp_part_3 = peak_3 / hcp3
+    return hcp_part_1/hcp_part_3
+
+
 
 def mixture_data(ratio):
     """
@@ -94,7 +106,7 @@ if __name__ == '__main__':
     p.plot(hcp_angles[window], hcp_intensity[window])
     
     # Add some more info to the plot
-    p.title(r'Simulated Powder XRD of FCC and HCP Hydrogen at 5498 eV')
+    #p.title(r'Simulated Powder XRD of FCC and HCP Hydrogen at 5503 eV')
     p.xlabel(r'$2\theta$')
     p.ylabel(r'Scattering Intensity per Cubic Angstrom')
     p.legend(['FCC','HCP'])

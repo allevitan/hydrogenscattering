@@ -5,6 +5,8 @@ from sim import *
 from XRD_math import *
 
 
+wavelength = 2.253
+
 #
 # We start by setting up the hydrogen jet. It has 2 parts:
 # an FCC intensity and an HCP intensity part
@@ -56,7 +58,7 @@ p.xlabel('Radial distance (um)')
 
 
 # And we set up the "simulation"
-sim = Sim((fcc_jet,hcp_jet),double_beam, 2.265, [0.5,0.5])
+sim = Sim((fcc_jet,hcp_jet),double_beam, wavelength, [0.5,0.5])
 
 fcc_data, hcp_data = sim.sim(450,proof_plots=True)
 
@@ -88,10 +90,10 @@ p.plot(hcp_sim_angles[window], hcp_sim_norm_ints[window],'b')
 p.plot(angles_ideal, hcp_norm_ideal, 'k--')
 p.xlabel(r'Scattering Angle $2\theta$')
 p.ylabel('Normalized Intensity')
-p.legend(['Simulated HCP Spectrum',
-         'Ideal HCP Spectrum',])
-p.title('Comparing Ideal HCP Spectrum to a Direct Simulation of ' \
-        + str(n_cryst) + ' Crystallites')
+p.xlim([38,52])
+p.legend(['Simulated HCP','Ideal HCP'])
+#p.title('Comparing Ideal HCP Spectrum to a Direct Simulation of ' \
+#        + str(n_cryst) + ' Crystallites')
 
 p.figure()
 p.plot(fcc_sim_angles[window], fcc_sim_norm_ints[window],'r')
@@ -103,11 +105,13 @@ p.legend(['Simulated FCC Spectrum',
 p.title('Comparing Ideal FCC Spectrum to a Direct Simulation of ' \
         + str(n_cryst) + ' Crystallites')
 
+
 empty_jet = 0 * fcc_jet
 full_jet = fcc_jet + hcp_jet
-small_sim = Sim((empty_jet,full_jet),double_beam, 2.265, [0.125,0.125])
-med_sim = Sim((empty_jet,full_jet),double_beam, 2.265, [0.25,0.25])
-large_sim = Sim((empty_jet,full_jet),double_beam, 2.265, [0.5,0.5])
+small_sim = Sim((empty_jet,full_jet),double_beam, wavelength, [0.125,0.125])
+med_sim = Sim((empty_jet,full_jet),double_beam, wavelength, [0.25,0.25])
+large_sim = Sim((empty_jet,full_jet),double_beam, wavelength, [0.5,0.5])
+
 
 print(0)
 small_hcp_data = small_sim.sim(550)[1]
@@ -121,7 +125,7 @@ med_hcp_data = {angle: [intensity] for angle, intensity
 large_hcp_data = {angle: [intensity] for angle, intensity
                   in large_hcp_data.items()}
 
-for i in range(0,50):
+for i in range(0,100):
     print(i+1)
     s = small_sim.sim(550)[1]
     m = med_sim.sim(550)[1]
@@ -134,6 +138,7 @@ for i in range(0,50):
         large_hcp_data[angle] += [intensity]
 
 p.figure()
+
 small_hcp_angles, small_hcp_intensities = spectrumify(
     {angle: np.average(intensities) for angle, intensities
      in small_hcp_data.items()})
@@ -143,6 +148,8 @@ med_hcp_angles, med_hcp_intensities = spectrumify(
 large_hcp_angles, large_hcp_intensities = spectrumify(
     {angle: np.average(intensities) for angle, intensities
      in large_hcp_data.items()})
+
+
 p.plot(large_hcp_angles,large_hcp_intensities, 'r-')
 p.plot(med_hcp_angles,med_hcp_intensities, 'g-')
 p.plot(small_hcp_angles,small_hcp_intensities, 'b-')
@@ -155,25 +162,25 @@ for angle, intensities in med_hcp_data.items():
 for angle, intensities in small_hcp_data.items():
     p.errorbar(angle, np.average(intensities), 
                yerr=np.std(intensities), fmt='b', capsize=10)
-p.title('Scattering Intensities from a Pure HCP Jet')
+p.xlim([38,52])
+#p.title('Scattering Intensities from a Pure HCP Jet')
 p.legend(['0.5 um grains','0.25 um grains','0.125 um grains'], loc=2)
 p.xlabel(r'Scattering Angle $2\theta$')
 p.ylabel('Non-Normalized Intensity (arbitrary units)')
 
 
 
-angles, offsets, s_facts = hardcore_powder_XRD(sim.hcp_crystal,
-                                               sim.wavelength,
-                                               n_cryst,0.1,
-                                               direct=True)
+# angles, offsets, s_facts = hardcore_powder_XRD(sim.hcp_crystal,
+#                                                sim.wavelength,
+#                                                n_cryst,0.1,
+#                                                direct=True)
 
-p.figure()
-broad_ang, broad_int = gen_full_spectrum(angles,offsets,s_facts,0.1,sim.wavelength)
-p.plot(broad_ang,broad_int)
-p.title('Full Simulation Including Scherrer Broadening')
-p.xlabel(r'Scattering Angle $2\theta$')
-p.ylabel('Non-Normalized Intensity (arbitrary units)')
-p.show()
+# p.figure()
+# broad_ang, broad_int = gen_full_spectrum(angles,offsets,s_facts,0.1,sim.wavelength)
+# p.plot(broad_ang,broad_int)
+# p.title('Full Simulation Including Scherrer Broadening')
+# p.xlabel(r'Scattering Angle $2\theta$')
+# p.ylabel('Non-Normalized Intensity (arbitrary units)')
 
 
 p.show()

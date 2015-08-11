@@ -135,6 +135,7 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     #crosses = n.sum(ks[None,:,:]*n.cross(ang_vecs,zero_angs[None,:,:]),axis=2)/nu
     #az_angs =  n.pi*(1 - n.sign(dots))/2 + n.arcsin(crosses)*n.sign(dots) - phi_0s
     
+    
     # And we calculate the difference in wavevector between that scattering
     # vector and what it needs to be
     knorms = n.linalg.norm(kprimes,axis=2)
@@ -142,6 +143,9 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
     
     if direct:
         picks = n.abs(offsets) < d
+        #detector_angle bit STILL NEEDS TO BE TESTED
+        if detector_angle is not None:
+            picks = picks & (n.random.rand(*picks.shape)<detector_angle/(2*n.pi))
         calcangles = n.arccos(n.sum(-kprimes*ks,axis=2) / (nu*knorms))
         picked_angles = calcangles[picks]
         picked_offsets = offsets[picks]
@@ -149,11 +153,17 @@ def hardcore_powder_XRD(crystal, wavelength, num, l, rlvs=None, s_facts=None, ni
                           n.ones(calcangles.shape).transpose()).transpose()[picks]
         return picked_angles, picked_offsets, picked_s_facts
 
+    
     intensities = l**2 * (((d + offsets) / (4*(nu+offsets))).transpose() \
                   * s_facts.transpose()).transpose() * l**3
     intensities[n.abs(offsets)>d] = 0
+    # Just assumes each vector has an equal chance of scattering into the
+    # availible angle
+    if detector_angle is not None:
+        intensities[n.random.rand(*intensities.shape)>detector_angle/(2*n.pi)] = 0
+
     angles = n.arcsin(n.linalg.norm(rlvs, axis=1)/(2*nu))
-    #calcangs = n.average(calcangles,weights=offsets<d
+    #calcangs = n.average(calcangles,weights=offsets<d)
     intensities = n.sum(intensities, axis=1)
     intensities = intensities / n.sin(2*angles) * \
                   (1 + n.cos(2*angles)**2)

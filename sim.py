@@ -74,7 +74,7 @@ class Sim(object):
         #self.hcp_s_facts = self.hcp_s_facts[good]
         
         
-    def sim(self, offset, proof_plots=False):
+    def sim(self, offset, detector_angle=None, proof_plots=False, direct=False):
         """
         This takes an offset between the edge of the beam profile
         and the edge of the jet profile in unts of pixels
@@ -140,11 +140,16 @@ class Sim(object):
             p.imshow(fluence_showing[350:-350,:])
             p.title('After Fluence Slicing (exaggerated bin size)')
         
-        fcc_XRD = {}
-        fcc_data = np.zeros((self.fcc_rlvs.shape[0],))
-        hcp_XRD = {}
-        hcp_data = np.zeros((self.hcp_rlvs.shape[0],))
-
+        
+        if direct == True:
+            fcc_angles, fcc_offsets, fcc_s_facts = [],[],[]
+            hcp_angles, hcp_offsets, hcp_s_facts = [],[],[]
+        else:
+            fcc_XRD = {}
+            fcc_data = np.zeros((self.fcc_rlvs.shape[0],))
+            hcp_XRD = {}
+            hcp_data = np.zeros((self.hcp_rlvs.shape[0],))
+            
 
         #
         # And now we actually run through, calculating the
@@ -168,22 +173,54 @@ class Sim(object):
             if n_fcc != 0:
                 fcc_avg = np.sum(fcc_nums[fluence_slice] *
                                  beam[fluence_slice]) / n_fcc
+            else:
+                fcc_avg = 0
             if n_hcp != 0:
                 hcp_avg = np.sum(hcp_nums[fluence_slice] * 
                                  beam[fluence_slice]) / n_hcp
-                        
-            # And now we actually simulate the diffraction!
-            if n_fcc != 0:
-                fcc_data += hardcore_powder_XRD(
+            else:
+                hcp_avg = 0
+                
+            if direct == True:
+                angs, offs, s_facts = hardcore_powder_XRD(
                     self.fcc_crystal, self.wavelength,
                     n_fcc,self.fcc_size,
-                    rlvs=self.fcc_rlvs, s_facts=self.fcc_s_facts) * fcc_avg
-            if n_hcp != 0:    
-                hcp_data += hardcore_powder_XRD(
+                    rlvs=self.fcc_rlvs,
+                    s_facts=self.fcc_s_facts,
+                    detector_angle=detector_angle, direct=True)
+                fcc_angles.extend(angs)
+                fcc_offsets.extend(offs)
+                fcc_s_facts.extend([s_fact*fcc_avg for s_fact in s_facts])
+                angs, offs, s_facts = hardcore_powder_XRD(
                     self.hcp_crystal, self.wavelength,
                     n_hcp,self.hcp_size,
-                    rlvs=self.hcp_rlvs, s_facts=self.hcp_s_facts) * hcp_avg
+                    rlvs=self.hcp_rlvs,
+                    s_facts=self.hcp_s_facts,
+                    detector_angle=detector_angle, direct=True)
+                hcp_angles.extend(angs)
+                hcp_offsets.extend(offs)
+                hcp_s_facts.extend([s_fact*hcp_avg for s_fact in s_facts])
+            else:
+                # And now we actually simulate the diffraction!
+                if n_fcc != 0:
+                    fcc_data += hardcore_powder_XRD(
+                        self.fcc_crystal, self.wavelength,
+                        n_fcc,self.fcc_size,
+                        rlvs=self.fcc_rlvs,
+                        s_facts=self.fcc_s_facts,
+                        detector_angle=detector_angle) * fcc_avg
+                if n_hcp != 0:    
+                    hcp_data += hardcore_powder_XRD(
+                        self.hcp_crystal, self.wavelength,
+                        n_hcp,self.hcp_size,
+                        rlvs=self.hcp_rlvs,
+                        s_facts=self.hcp_s_facts,
+                        detector_angle=detector_angle) * hcp_avg
+        
 
+        if direct == True:
+            return ((fcc_angles, fcc_offsets, fcc_s_facts),
+                    (hcp_angles, hcp_offsets, hcp_s_facts))
         #
         # Now we enter the part of the code where we package up
         # the scattering data into nice, manageable dictionaries.
