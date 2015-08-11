@@ -2,6 +2,7 @@ from __future__ import print_function, division
 import numpy as np
 from matplotlib import pyplot as p
 from lattice import *
+from monte_carlo import *
 import sys
 
 
@@ -182,7 +183,7 @@ class Sim(object):
                 hcp_avg = 0
                 
             if direct == True:
-                angs, offs, s_facts = hardcore_powder_XRD(
+                angs, offs, s_facts = monte_carlo_XRD(
                     self.fcc_crystal, self.wavelength,
                     n_fcc,self.fcc_size,
                     rlvs=self.fcc_rlvs,
@@ -191,7 +192,7 @@ class Sim(object):
                 fcc_angles.extend(angs)
                 fcc_offsets.extend(offs)
                 fcc_s_facts.extend([s_fact*fcc_avg for s_fact in s_facts])
-                angs, offs, s_facts = hardcore_powder_XRD(
+                angs, offs, s_facts = monte_carlo_XRD(
                     self.hcp_crystal, self.wavelength,
                     n_hcp,self.hcp_size,
                     rlvs=self.hcp_rlvs,
@@ -203,14 +204,14 @@ class Sim(object):
             else:
                 # And now we actually simulate the diffraction!
                 if n_fcc != 0:
-                    fcc_data += hardcore_powder_XRD(
+                    fcc_data += monte_carlo_XRD(
                         self.fcc_crystal, self.wavelength,
                         n_fcc,self.fcc_size,
                         rlvs=self.fcc_rlvs,
                         s_facts=self.fcc_s_facts,
                         detector_angle=detector_angle) * fcc_avg
                 if n_hcp != 0:    
-                    hcp_data += hardcore_powder_XRD(
+                    hcp_data += monte_carlo_XRD(
                         self.hcp_crystal, self.wavelength,
                         n_hcp,self.hcp_size,
                         rlvs=self.hcp_rlvs,
